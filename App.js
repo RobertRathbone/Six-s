@@ -43,15 +43,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.lightgrey,
-    fontSize: 30,
+    fontSize: 28,
+    lineHeight: 30,
     fontWeight: 'bold',
     letterSpacing: 15,
     marginVertical: 20,
+    
   },
   subtitle: {
     color: colors.lightgrey,
     fontSize: 22,
     fontWeight: 'bold',
     letterSpacing: 22,
+    lineHeight: 23,
   },
 });

@@ -26,6 +26,17 @@ const Game = ({letters}) => {
   const [dayLetters, setDayLetters] = useState(letters);
   const [timerCount, setTimer] = useState(360);
   const [showScore, setShowScore] = useState(0);
+  const [row0Score, setRow0Score] = useState(0);
+  const [row1Score, setRow1Score] = useState(0);
+  const [row2Score, setRow2Score] = useState(0);
+  const [row3Score, setRow3Score] = useState(0);
+  const [row4Score, setRow4Score] = useState(0);
+  const [row5Score, setRow5Score] = useState(0);
+  const [showMaxScore, setShowMaxScore] = useState(0);
+  let x = 1;
+  let y = 1;
+  let z = 1;
+  let w = 1;
   var score = 0;
 
   const setGreyCaps = () => {
@@ -58,11 +69,13 @@ const Game = ({letters}) => {
   useEffect(() => {
     if (loaded) {   
        persistState();
+       setShowScore(row0Score + row1Score + row2Score + row3Score + row4Score + row5Score);
       }
   }, [rows, curRow, curCol, gameState]);
 
   useEffect(() => {
     readState();
+    maxScore();
   }, []);
 
 const persistState = async () => {
@@ -132,11 +145,129 @@ const readState = async () => {
 //     return !checkIfWon() && curRow ===rows.length;
 //   }
 
+  const maxScore = () => {
+      const found = [];
+      const scoreArray = [];
+      var maxScore0 = 0;
+      var maxScore1 = 0;
+      var maxScore2 = 0;
+      var maxScore3 = 0;
+      var maxScore4 = 0;
+      var maxScore5 = 0;
+      var temp = 0;
+      let notMe = 0;
+    for (let i = 0; i<words.length; i++){
+        notMe = 0;
+        let word1 = words[i].split("");
+        for (let j = 0; j<word1.length; j ++ ){
+            if (!letters.includes(word1[j])){
+                notMe = 1;
+                break;
+            }
+        }
+        if (notMe == 0){
+            if (!found.includes(words[i])){
+                found.push(words[i])
+            }
+        }
+    }
+      console.log("finished word found loop", found.length, found[8])
+      for (let i = 0; i<found.length; i++){
+          for (let j = 0; j<found[i].length; j++){
+            let x = 1;
+            let y = 1;
+            let z = 1;
+            let w = 1;
+
+              if (i==0){
+                  x = 2;
+              }
+              if (i==3){
+                  y = 2;
+              }
+              if (i==4){
+                  z = 2;
+              }
+              if (i==5){
+                  w = 2;
+              }
+            if (found[i][j] == letters[0] ||
+                found[i][j] == letters[2] ||
+                found[i][j] == letters[2] ||
+                found[i][j]  == letters[3] ) {
+                score = score + (1* x * y * z * w) ;
+                }
+            else if ( found[i][j]  == letters[4]) {
+                score = score + (2* x * y * z * w) ;
+            }
+            else if (found[i][j]  == letters[5]) {
+                score = score + (3* x * y * z * w) ;
+            }
+            else if (found[i][j]  == letters[6]) {
+                score = score + (4* x * y * z * w) ;
+            }
+            else if (found[i][j]  == letters[7]) {
+                score = score + (5* x * y * z * w) ;
+            }
+            else if (found[i][j]  == letters[8]) {
+                score = score + (6* x * y * z * w) ;
+                
+            }
+            else if (found[i][j]  == letters[9]) {
+                score = score + (6* x * y * z * w) ;
+            }
+            
+        }
+        if (found.length >5){
+            score = score *2
+        }
+
+        if (x=2){
+            if (score> maxScore0){
+                maxScore0 = score;
+            }
+        }
+        else if (y=2){
+            if (score> maxScore3){
+                maxScore3 = score;
+            }
+        }
+        else if (z=2){
+            if (score> maxScore4){
+                maxScore4 = score;
+            }
+        }
+        else if (w=2){
+            if (score> maxScore5){
+                maxScore5 = score;
+            }
+        }
+        else if (score > maxScore2){
+            temp = maxScore2
+            maxScore2 = score;
+            if (maxScore2 > maxScore1){
+                maxScore1 = maxScore2;
+                maxScore2 = temp;
+            }
+        }
+        console.log("score", score, maxScore0, maxScore3,x, y,z,w)
+        score = 0;
+        
+      }
+      setShowMaxScore(maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5);
+  }
+
+
+
   const checkWord = (rowWord) => {
     if (words.includes(rowWord)){
-        for (let i = 0; i<= rowWord.length; i++){
+        for (let i = 0; i< rowWord.length; i++){
             var x = 1;
-            if (i+curCol%8==0){
+            console.log("i: ", i, "curRow: ", curRow)
+            if (curRow==0 && i == 0 || 
+                curRow==3 && i == 5 ||
+                curRow==4 && i == 4 ||
+                curRow==5 && i == 3 ){
                 x = 2;
             }
             if (rowWord[i] == letters[0] ||
@@ -175,9 +306,25 @@ const readState = async () => {
         if (rowWord.length == 6){
             score = score *2
         }
-        setShowScore(score + showScore);
-        console.log("Booty");
+        if (curRow == 0){
+            setRow0Score(score);
+        } else if (curRow == 1)
+            {setRow1Score(score)
+        } else if (curRow == 2)
+            {setRow2Score(score);
+        } else if (curRow == 3)
+            {setRow3Score(score);
+        } else if (curRow == 4)
+            { setRow4Score(score);
+        } else if (curRow == 5)
+            { setRow5Score(score);
+        } 
+        score = 0;
+        setShowScore(row0Score + row1Score + row2Score + row3Score + row4Score + row5Score);
         return true;
+    } else {
+        Alert.alert(`${rowWord} is not a word`, 'Try again');
+        return;
     }
 
   }
@@ -210,9 +357,18 @@ const readState = async () => {
 
     if (key === ENTER) {
         const rowWord = rows[curRow].toString().replace(/,/g,"");
+        for (let i = 0; i< curRow; i ++){
+            if (rowWord == rows[i].toString().replace(/,/g,"")){
+                setCurCol(0);
+                Alert.alert('Same Word Used', `In Row ${i+1}`)
+                return;
+            }
+        }
         checkWord(rowWord);
-        setCurRow(curRow + 1);
         setCurCol(0);
+        if (curRow<6){
+            setCurRow(curRow + 1);
+        }
         return;
     }
 
@@ -267,9 +423,10 @@ const readState = async () => {
 
   return (
       <>
-      <View style ={{display: 'inline-block'}} >
-        <Text style={{color: colors.lightgrey }}>Timer: {timerCount}</Text>
-        <Text style={{color: colors.lightgrey }}>Score: {showScore}</Text>
+      <View style ={{ flexDirection: 'row' }} >
+        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Timer: {timerCount}</Text>
+        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Max: {showMaxScore}</Text>
+        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18 }}>Score: {showScore}</Text>
       </View>
       <View style={styles.map}> 
       
@@ -301,6 +458,7 @@ const readState = async () => {
     //   greenCaps={greenCaps}
     //   yellowCaps={yellowCaps}
       greyCaps={greyCaps}
+      
       />
     </View>
     </>

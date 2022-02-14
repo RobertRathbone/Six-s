@@ -26,31 +26,59 @@ export const copyArray = (arr) => {
     const nextNine = ['b', 'y', 'w', 'v', 'x', 'j', 'q', 'z'];
     const vowels = ['a', 'i', 'o', 'u'];
     const theEleven = [];
-    for (let i = 0; i<2; i++){
+    while (theEleven.length < 2){
       var thisRun = Math.floor(Math.random() * 4)
       if (theEleven.includes(vowels[thisRun])) {
-        i = i-1;
       } else {
       theEleven.push(vowels[thisRun])
       }
     }
     theEleven.push('e');
-    for (let i = 0; i<4; i++){
+    while (theEleven.length < 7){
       var thisRun = Math.floor(Math.random() * 12)
       if (theEleven.includes(twelveCommon[thisRun])) {
-        i = i-1;
       } else {
       theEleven.push(twelveCommon[thisRun])
       }
     }
-    for (let i = 0; i<2; i++){
+    while (theEleven.length != 9){
       var thisRun = Math.floor(Math.random() * 9)
       if (theEleven.includes(nextNine[thisRun])) {
-        i = i-1;
       } else {
       theEleven.push(nextNine[thisRun])
       }
     }
+    console.log("this is how many letters: ", theEleven.length)
+
+    if (theEleven.includes('q') && theEleven.includes('z')) 
+    {
+      theEleven.pop();
+      theEleven.push('b');
+    }
+    if (theEleven.includes('q') && theEleven.includes('x')) 
+    {
+      theEleven.pop();
+      theEleven.push('b');
+    }
+    if (theEleven.includes('x') && theEleven.includes('z')) 
+    {
+      theEleven.pop();
+      theEleven.push('b');
+    }
+    if (theEleven.includes('v') && theEleven.includes('z')) 
+    {
+      theEleven.pop();
+      theEleven.push('y');
+    }    if (theEleven.includes('x') && theEleven.includes('v')) 
+    {
+      theEleven.pop();
+      theEleven.push('y');
+    }    if (theEleven.includes('v') && theEleven.includes('q')) 
+    {
+      theEleven.pop();
+      theEleven.push('y');
+    }
+    console.log("this is how many letters: ", theEleven)
     theEleven.push('s');
     return theEleven;
   }
