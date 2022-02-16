@@ -1,11 +1,12 @@
 import { useEffect, useState, Pressable } from 'react';
-import { StyleSheet, Text, View, Alert, ActivityIndicator  } from 'react-native';
+import { StyleSheet, Text, View, Alert, ActivityIndicator, Button  } from 'react-native';
 import { colorsToEmoji, colors, CLEAR, ENTER } from '../../constants';;
 import Keyboard from '../Keyboard';
 import * as Clipboard  from 'expo-clipboard';
 import { copyArray, getDayOfYear, getDayOfYearKey } from '../../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import words from '../../utils/words';
+import FinalPage from './FinalPage';
 
 const NUMBER_OF_TRIES  = 8;
 const alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
@@ -33,6 +34,7 @@ const Game = ({letters}) => {
   const [row4Score, setRow4Score] = useState(0);
   const [row5Score, setRow5Score] = useState(0);
   const [showMaxScore, setShowMaxScore] = useState(0);
+  const [highScores, setHighScores] = useState([]);
   let x = 1;
   let y = 1;
   let z = 1;
@@ -126,26 +128,61 @@ const readState = async () => {
     row.map((cell, j) => colorsToEmoji[getCellBGColor(i,j)] ).join('')
     ).filter((row) => row)
     .join('\n');
-    const textToShare = `Wordle Copy \n ${textMap}`;
+    const textToShare = `Six(S) ${showScore} / ${showMaxScore} \n ${textMap} \n Time left: ${timerCount}`;
     Clipboard.setString(textToShare)
     Alert.alert('Copied to your clipboard', 'Paste to share to social media')
   }
 
-//   const amDone = () => {
-//     console.log("Done")
-//     return;
-//   }
 
-//   const checkIfWon = () => {
-//     const row = rows[curRow - 1];
-//     return row.every((letter, i) => letter === letters[i])
-//   }
-
-//   const checkIfLost = () => {
-//     return !checkIfWon() && curRow ===rows.length;
-//   }
+const scoreRow = (word, row) => {
+    for (let i = 0; i< word.length; i++){
+        var x = 1;
+        if (row==0 && i == 0 || 
+            row==3 && i == 5 ||
+            row==4 && i == 4 ||
+            row==5 && i == 3 ){
+            x = 2;
+        }
+        if (word[i] == letters[0] ||
+            word[i] == letters[2] ||
+            word[i] == letters[2] ||
+            word[i] == letters[3] ) {
+            score = score + (1 * x);
+            // console.log(word[i], i, score);
+            }
+        else if ( word[i] == letters[4]) {
+            score = score + (2 * x);
+            // console.log(word[i], i, score);
+        }
+        else if (word[i] == letters[5]) {
+            score = score + (3 * x);
+            // console.log(word[i], i, score);
+        }
+        else if (word[i] == letters[6]) {
+            score = score + (4 * x);
+            // console.log(word[i], i, score);
+        }
+        else if (word[i] == letters[7]) {
+            score = score + (5 * x);
+            // console.log(word[i], i, score);
+        }
+        else if (word[i] == letters[8]) {
+            score = score + (6 * x);
+            // console.log(word[i], i, score);
+        }
+        else if (word[i] == letters[9]) {
+            score = score + (6 * x);
+            // console.log(word[i], i, score);
+        }
+    }
+    if (word.length == 6){
+        score = score *2
+    }
+    return score;
+}
 
   const maxScore = () => {
+    const updatedHighScores = copyArray(highScores);
       const found = [];
       const scoreArray = [];
       var maxScore0 = 0;
@@ -156,7 +193,7 @@ const readState = async () => {
       var maxScore5 = 0;
       var temp = 0;
       let notMe = 0;
-    for (let i = 0; i<words.length; i++){
+    for (let i = 0; i<10678; i++){
         notMe = 0;
         let word1 = words[i].split("");
         for (let j = 0; j<word1.length; j ++ ){
@@ -171,141 +208,58 @@ const readState = async () => {
             }
         }
     }
-      console.log("finished word found loop", found.length, found[8])
-      for (let i = 0; i<found.length; i++){
-          for (let j = 0; j<found[i].length; j++){
-            let x = 1;
-            let y = 1;
-            let z = 1;
-            let w = 1;
+    console.log("finished word found loop", found.length, found[8])
+    for (let i = 0; i<found.length; i++){
+        for (let j=0; j<6; j++){
+        scoreRow(found[i],j)
 
-              if (i==0){
-                  x = 2;
-              }
-              if (i==3){
-                  y = 2;
-              }
-              if (i==4){
-                  z = 2;
-              }
-              if (i==5){
-                  w = 2;
-              }
-            if (found[i][j] == letters[0] ||
-                found[i][j] == letters[2] ||
-                found[i][j] == letters[2] ||
-                found[i][j]  == letters[3] ) {
-                score = score + (1* x * y * z * w) ;
-                }
-            else if ( found[i][j]  == letters[4]) {
-                score = score + (2* x * y * z * w) ;
-            }
-            else if (found[i][j]  == letters[5]) {
-                score = score + (3* x * y * z * w) ;
-            }
-            else if (found[i][j]  == letters[6]) {
-                score = score + (4* x * y * z * w) ;
-            }
-            else if (found[i][j]  == letters[7]) {
-                score = score + (5* x * y * z * w) ;
-            }
-            else if (found[i][j]  == letters[8]) {
-                score = score + (6* x * y * z * w) ;
-                
-            }
-            else if (found[i][j]  == letters[9]) {
-                score = score + (6* x * y * z * w) ;
-            }
-            
-        }
-        if (found.length >5){
-            score = score *2
-        }
-
-        if (x=2){
+        if (j==0){
             if (score> maxScore0){
                 maxScore0 = score;
+                updatedHighScores[0]=found[i];
             }
         }
-        else if (y=2){
+        else if (j==3){
             if (score> maxScore3){
                 maxScore3 = score;
+                updatedHighScores[3]=found[i];
+                console.log(found[i]);
             }
         }
-        else if (z=2){
+        else if (j==4){
             if (score> maxScore4){
                 maxScore4 = score;
+                updatedHighScores[4]=found[i];
             }
         }
-        else if (w=2){
+        else if (j==5){
             if (score> maxScore5){
                 maxScore5 = score;
+                updatedHighScores[5]=found[i];
             }
         }
         else if (score > maxScore2){
-            temp = maxScore2
+            temp = maxScore2;
             maxScore2 = score;
-            if (maxScore2 > maxScore1){
-                maxScore1 = maxScore2;
-                maxScore2 = temp;
+            updatedHighScores[2] = found[i]
+            if (maxScore1 < score && maxScore1 < temp){
+                maxScore2 = score;
+                updatedHighScores[1]=found[i];
             }
+            console.log("Hope 1 isn't 0",maxScore2, maxScore1)
         }
-        console.log("score", score, maxScore0, maxScore3,x, y,z,w)
         score = 0;
-        
-      }
+        setHighScores(updatedHighScores);
+        } 
+    }
       setShowMaxScore(maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5);
+      console.log(highScores[0],highScores[1],highScores[2],highScores[3],highScores[4],highScores[5]);
   }
 
-
-
   const checkWord = (rowWord) => {
+    const updatedRows = copyArray(rows);
     if (words.includes(rowWord)){
-        for (let i = 0; i< rowWord.length; i++){
-            var x = 1;
-            console.log("i: ", i, "curRow: ", curRow)
-            if (curRow==0 && i == 0 || 
-                curRow==3 && i == 5 ||
-                curRow==4 && i == 4 ||
-                curRow==5 && i == 3 ){
-                x = 2;
-            }
-            if (rowWord[i] == letters[0] ||
-                rowWord[i] == letters[2] ||
-                rowWord[i] == letters[2] ||
-                rowWord[i] == letters[3] ) {
-                score = score + (1 * x);
-                console.log(rowWord[i], i, score);
-                }
-            else if ( rowWord[i] == letters[4]) {
-                score = score + (2 * x);
-                console.log(rowWord[i], i, score);
-            }
-            else if (rowWord[i] == letters[5]) {
-                score = score + (3 * x);
-                console.log(rowWord[i], i, score);
-            }
-            else if (rowWord[i] == letters[6]) {
-                score = score + (4 * x);
-                console.log(rowWord[i], i, score);
-            }
-            else if (rowWord[i] == letters[7]) {
-                score = score + (5 * x);
-                console.log(rowWord[i], i, score);
-            }
-            else if (rowWord[i] == letters[8]) {
-                score = score + (6 * x);
-                console.log(rowWord[i], i, score);
-            }
-            else if (rowWord[i] == letters[9]) {
-                score = score + (6 * x);
-                console.log(rowWord[i], i, score);
-            }
-
-        }
-        if (rowWord.length == 6){
-            score = score *2
-        }
+       scoreRow(rowWord, curRow)
         if (curRow == 0){
             setRow0Score(score);
         } else if (curRow == 1)
@@ -324,9 +278,19 @@ const readState = async () => {
         return true;
     } else {
         Alert.alert(`${rowWord} is not a word`, 'Try again');
+        console.log(curRow, curCol),
+        updatedRows[curRow][curCol - 1] = '';
+        updatedRows[curRow][curCol - 2] = '';
+        updatedRows[curRow][curCol - 3] = '';
+        updatedRows[curRow][curCol - 4] = '';
+        updatedRows[curRow][curCol - 5] = '';
+        updatedRows[curRow][curCol - 6] = '';
+        setRows(updatedRows);
+        console.log("cursor should be here: ",curRow)
+        setCurRow(curRow);
+        setCurCol(0);
         return;
     }
-
   }
 
   const onKeyPressed = (key) => {
@@ -346,29 +310,43 @@ const readState = async () => {
     }
 
     if (key === "↑"){
-        setCurRow(curRow - 1);
+        if (curRow > 0){
+            setCurRow(curRow - 1);
+        } else {
+            setCurRow(curRow);
+            setCurCol(curCol);
+        }
         return;
       }    
-
       if (key === "↓"){
-        setCurRow(curRow + 1);
+          if (curRow < 5){
+            setCurRow(curRow + 1);
+          }
         return;
       }    
 
     if (key === ENTER) {
         const rowWord = rows[curRow].toString().replace(/,/g,"");
-        for (let i = 0; i< curRow; i ++){
-            if (rowWord == rows[i].toString().replace(/,/g,"")){
+        for (let i = 0; i< 6; i ++){
+            if (rowWord == rows[i].toString().replace(/,/g,"") && curRow != i){
+                console.log("curRow", curRow, i)
+                updatedRows[curRow][curCol - 1] = '';
+                updatedRows[curRow][curCol - 2] = '';
+                updatedRows[curRow][curCol - 3] = '';
+                updatedRows[curRow][curCol - 4] = '';
+                updatedRows[curRow][curCol - 5] = '';
+                updatedRows[curRow][curCol - 6] = '';
+                setRows(updatedRows);
                 setCurCol(0);
                 Alert.alert('Same Word Used', `In Row ${i+1}`)
                 return;
             }
         }
-        checkWord(rowWord);
-        setCurCol(0);
         if (curRow<6){
             setCurRow(curRow + 1);
         }
+        checkWord(rowWord);
+        setCurCol(0);
         return;
     }
 
@@ -387,29 +365,30 @@ const readState = async () => {
       return (row+col)%8!=0
   }
 
-//   const getCellBGColor = (row, col) => {
-//     const letter = rows[row][col];
-//     if (row >= curRow){
-//       return colors.black;
-//     }
-//     if (letter === letters[col]) {
-//       return colors.primary;
-//     }
-//     if (letters.includes(letter)){
-//       return colors.secondary;
-//     }
-//     return colors.darkgrey
-//   };
+  const getCellBGColor = (row, col) => {
+    const letter = rows[row][col];
+    if (row === 1 || row === 2){
+        return;
+    }
+    if (row >= curRow){
+      return colors.darkgrey;
+    }
+    if (row === 0 && col === 0) {
+      return colors.magenta;
+    }
+    if (row === 3 && col === 5) {
+        return colors.magenta;
+      }
+      if (row === 4 && col === 4) {
+        return colors.magenta;
+      }
+      if (row === 5 && col === 3) {
+        return colors.magenta;
+      }
 
-//   const greenCaps = rows.flatMap((row, i) =>
-//     row.filter((cell, j) => getCellBGColor(i,j) === colors.primary)
-//   );
-//   const yellowCaps = rows.flatMap((row, i) =>
-//     row.filter((cell, j) => getCellBGColor(i,j) === colors.secondary)
-//   );
-//   const greyCaps = rows.flatMap((row, i) =>
-//     row.filter((cell, j) => getCellBGColor(i,j) === colors.darkgrey)
-//   );
+    return colors.darkgrey
+  };
+
   const greyCaps = setGreyCaps();
 
   if (!loaded){
@@ -419,6 +398,13 @@ const readState = async () => {
   if (gameState != 'playing'){
     console.log("BurgerKing");
     return (<FinalPage won={gameState === 'won'} />)
+  }
+
+  const amDone = () => {
+    console.log("Done");
+    setGameState('won');
+    shareScore();
+    return;
   }
 
   return (
@@ -446,9 +432,7 @@ const readState = async () => {
               </View>
 
           ))}
-        {/* <Pressable onPress={amDone} style={styles.amDone}>
-            <Text style={styles.amDoneButton}>Finish</Text>
-        </Pressable> */}
+
         </View>
     
         )}
@@ -460,6 +444,9 @@ const readState = async () => {
       greyCaps={greyCaps}
       
       />
+    <Button style={styles.amDoneButton} onPress={amDone} 
+        title = "I am Done.">
+    </Button>
     </View>
     </>
   );
@@ -491,16 +478,13 @@ const styles = StyleSheet.create({
       fontSize: 26,
       fontWeight: 'bold',
     },
-    amDone: { 
+    amDoneButton: { 
         flex: 1, 
-        backgroundColor: colors.magenta,
+        color: colors.magenta,
+        backgroundColor: colors.lightgrey,
         borderRadius: 25, 
         alignItems: 'center',  
         justifyContent: 'center' 
-    },
-    amDoneButton: { 
-        color: colors.lightgrey, 
-        fontWeight: 'bold' 
     },
   });
 

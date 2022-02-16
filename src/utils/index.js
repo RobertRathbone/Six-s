@@ -23,7 +23,7 @@ export const copyArray = (arr) => {
 
   export const setLetters = () => {
     const twelveCommon = [ 'r', 't', 'n', 'l', 'c', 'd', 'p', 'm', 'h', 'g', 'f', 'k'];
-    const nextNine = ['b', 'y', 'w', 'v', 'x', 'j', 'q', 'z'];
+    const nextEight = ['b', 'y', 'w', 'v', 'x', 'j', 'q', 'z'];
     const vowels = ['a', 'i', 'o', 'u'];
     const theEleven = [];
     while (theEleven.length < 2){
@@ -42,13 +42,13 @@ export const copyArray = (arr) => {
       }
     }
     while (theEleven.length != 9){
-      var thisRun = Math.floor(Math.random() * 9)
-      if (theEleven.includes(nextNine[thisRun])) {
+      var thisRun = Math.floor(Math.random() * 8)
+      if (theEleven.includes(nextEight[thisRun])) {
       } else {
-      theEleven.push(nextNine[thisRun])
+      theEleven.push(nextEight[thisRun])
       }
     }
-    console.log("this is how many letters: ", theEleven.length)
+    
 
     if (theEleven.includes('q') && theEleven.includes('z')) 
     {
@@ -78,7 +78,16 @@ export const copyArray = (arr) => {
       theEleven.pop();
       theEleven.push('y');
     }
-    console.log("this is how many letters: ", theEleven)
+    // console.log("this is how many letters: ", theEleven)
     theEleven.push('s');
+    while (theEleven.length < 10){
+      var thisRun = Math.floor(Math.random() * 12)
+      if (theEleven.includes(twelveCommon[thisRun])) {
+      } else {
+      theEleven.push(twelveCommon[thisRun])
+      }
+    }
+    console.log("this is how many letters: ", theEleven.length, theEleven)
     return theEleven;
+
   }
