@@ -6,7 +6,13 @@ import * as Clipboard  from 'expo-clipboard';
 import { copyArray, getDayOfYear, getDayOfYearKey } from '../../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import words from '../../utils/words';
-import FinalPage from './FinalPage';
+import FinalPage from '../FinalPage';
+import Animated, {
+    slideInDown, 
+    SlideInLeft, 
+    ZoomIn,
+    FlipInEasyY
+  } from 'react-native-reanimated';
 
 const NUMBER_OF_TRIES  = 8;
 const alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
@@ -78,12 +84,19 @@ const Game = ({letters}) => {
   useEffect(() => {
     readState();
     maxScore();
+    console.log(highScores[0],highScores[1],highScores[2],highScores[3],highScores[4],highScores[5]);
   }, []);
 
 const persistState = async () => {
 
   const dataForToday = {
-    rows, curRow, curCol, gameState, dayLetters
+    rows, 
+    curRow, 
+    curCol, 
+    gameState, 
+    dayLetters, 
+    score, 
+    timerCount
   };
   try {
     const existingStateString = await AsyncStorage.getItem('@game');
@@ -107,8 +120,10 @@ const readState = async () => {
     setCurRow(day.curRow);
     setGameState(day.gameState);
     setDayLetters(day.dayLetters);
+    setShowScore(day.score);
+    setTimer(day.timerCount);
   } catch (e) {
-    console.log('Could not parse the state');
+    console.log('Could not parse the state', e, dayKey);
   }
   setLoaded(true)
 }
@@ -217,43 +232,69 @@ const scoreRow = (word, row) => {
             if (score> maxScore0){
                 maxScore0 = score;
                 updatedHighScores[0]=found[i];
+                console.log('1', maxScore0, found[i]);
+                score = 0;
+                break;
             }
         }
         else if (j==3){
             if (score> maxScore3){
                 maxScore3 = score;
                 updatedHighScores[3]=found[i];
-                console.log(found[i]);
+                console.log('4', maxScore2, found[i]);
+                score = 0;
+                break;
             }
         }
         else if (j==4){
             if (score> maxScore4){
                 maxScore4 = score;
                 updatedHighScores[4]=found[i];
+                console.log('5', maxScore4, found[i]);
+                score = 0;
+                break;
             }
         }
         else if (j==5){
             if (score> maxScore5){
                 maxScore5 = score;
                 updatedHighScores[5]=found[i];
+                console.log('6', maxScore5, found[i]);
+                score = 0;
+                break;
             }
         }
-        else if (score > maxScore2){
-            temp = maxScore2;
+        else if (score > maxScore1 && 
+            found[i] != highScores[0] &&
+            found[i] != highScores[3] &&
+            found[i] != highScores[4] &&
+            found[i] != highScores[5] 
+            ){
+            maxScore1 = score;
+            updatedHighScores[1] = found[i]
+            console.log('2', maxScore1, found[i]);
+            score = 0;
+            break;
+        }
+        else if (score > maxScore2 && 
+            found[i] != highScores[0] &&
+            found[i] != highScores[1] &&
+            found[i] != highScores[3] &&
+            found[i] != highScores[4] &&
+            found[i] != highScores[5] 
+            ){
             maxScore2 = score;
             updatedHighScores[2] = found[i]
-            if (maxScore1 < score && maxScore1 < temp){
-                maxScore2 = score;
-                updatedHighScores[1]=found[i];
-            }
-            console.log("Hope 1 isn't 0",maxScore2, maxScore1)
+            console.log('3', maxScore1, found[i]);
+            score = 0;
         }
         score = 0;
         setHighScores(updatedHighScores);
+
         } 
     }
       setShowMaxScore(maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5);
-      console.log(highScores[0],highScores[1],highScores[2],highScores[3],highScores[4],highScores[5]);
+      
   }
 
   const checkWord = (rowWord) => {
@@ -396,8 +437,12 @@ const scoreRow = (word, row) => {
   }
 
   if (gameState != 'playing'){
-    console.log("BurgerKing");
-    return (<FinalPage won={gameState === 'won'} />)
+    // console.log("BurgerKing");
+    return (<FinalPage won={gameState === 'won'} 
+    highScores ={highScores} 
+    score = {showScore}
+    highscore = {showMaxScore}
+    />)
   }
 
   const amDone = () => {
@@ -409,16 +454,31 @@ const scoreRow = (word, row) => {
 
   return (
       <>
-      <View style ={{ flexDirection: 'row' }} >
+      <Animated.View style ={{ flexDirection: 'row' }} entering={SlideInLeft.delay(1000)}>
         <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Timer: {timerCount}</Text>
         <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Max: {showMaxScore}</Text>
         <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18 }}>Score: {showScore}</Text>
-      </View>
+      </Animated.View>
       <View style={styles.map}> 
       
         {rows.map((row, i) => 
-          <View key={`row-${i}`} style ={styles.row}>
+          <Animated.View entering={SlideInLeft.delay(i*300)}
+          key={`row-${i}`} style ={styles.row}>
           {row.map((letter, j) => (
+              <>
+                {i < curRow && (
+              < Animated.View entering={FlipInEasyY.delay(j*50)}  key={`cell-color-${i}-${j}`}               
+              style={[styles.cell, {borderColor: isCellActive(i,j)
+                ? colors.grey
+                : colors.darkgrey,
+                backgroundColor: bonusCell(i,j)
+                ? colors.black
+                : '#661538',
+                }]}>
+                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+              </Animated.View>
+              )}
+              {i >= curRow && (
               <View key={`cell-${i}-${j}`} 
               style={[styles.cell, {borderColor: isCellActive(i,j)
                 ? colors.grey
@@ -430,10 +490,11 @@ const scoreRow = (word, row) => {
                 ]}>
                 <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
               </View>
-
+              )}
+            </>
           ))}
 
-        </View>
+        </Animated.View>
     
         )}
 

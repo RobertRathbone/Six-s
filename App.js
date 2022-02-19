@@ -4,6 +4,9 @@ import { colors } from './src/constants';
 import Game from './src/components/Game/Game';
 import * as FileSystem from 'expo-file-system';
 import { setLetters } from './src/utils';
+import Animated, {
+  SlideInLeft, 
+} from 'react-native-reanimated';
 
 const NUMBER_OF_TRIES  = 6;
 const sendLetters = setLetters()
@@ -28,8 +31,8 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <Text style={styles.title}>{letters}</Text>
-      <Text style={styles.subtitle}>1111234566</Text>
+      <Animated.Text entering={SlideInLeft.delay(300)} style={styles.title}>{letters}</Animated.Text>
+      <Animated.Text entering={SlideInLeft.delay(600)} style={styles.subtitle}>1111234566</Animated.Text>
       <Game letters ={sendLetters}/>
     </SafeAreaView>
   );

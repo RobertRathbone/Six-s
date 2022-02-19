@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { colors } from "../../../constants";
+import { colors } from "../../constants";
 
 const Number = ({number, label}) => (
     <View style={{ alignItems: 'center', margin: 10 }}>
