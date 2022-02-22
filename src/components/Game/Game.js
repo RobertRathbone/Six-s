@@ -229,7 +229,12 @@ const scoreRow = (word, row) => {
         scoreRow(found[i],j)
 
         if (j==0){
-            if (score> maxScore0){
+            if (score> maxScore0 &&
+                found[i] != highScores[1] &&
+                found[i] != highScores[3] &&
+                found[i] != highScores[4] &&
+                found[i] != highScores[5] 
+                ){
                 maxScore0 = score;
                 updatedHighScores[0]=found[i];
                 console.log('1', maxScore0, found[i]);
@@ -238,7 +243,12 @@ const scoreRow = (word, row) => {
             }
         }
         else if (j==3){
-            if (score> maxScore3){
+            if (score> maxScore3 &&
+                found[i] != highScores[0] &&
+                found[i] != highScores[1] &&
+                found[i] != highScores[4] &&
+                found[i] != highScores[5] 
+                ){
                 maxScore3 = score;
                 updatedHighScores[3]=found[i];
                 console.log('4', maxScore2, found[i]);
@@ -247,7 +257,12 @@ const scoreRow = (word, row) => {
             }
         }
         else if (j==4){
-            if (score> maxScore4){
+            if (score> maxScore4 &&
+                found[i] != highScores[0] &&
+                found[i] != highScores[3] &&
+                found[i] != highScores[1] &&
+                found[i] != highScores[5] 
+                ){
                 maxScore4 = score;
                 updatedHighScores[4]=found[i];
                 console.log('5', maxScore4, found[i]);
@@ -256,7 +271,12 @@ const scoreRow = (word, row) => {
             }
         }
         else if (j==5){
-            if (score> maxScore5){
+            if (score> maxScore5 &&
+                found[i] != highScores[0] &&
+                found[i] != highScores[3] &&
+                found[i] != highScores[4] &&
+                found[i] != highScores[1] 
+                ){
                 maxScore5 = score;
                 updatedHighScores[5]=found[i];
                 console.log('6', maxScore5, found[i]);
@@ -292,9 +312,9 @@ const scoreRow = (word, row) => {
         setHighScores(updatedHighScores);
 
         } 
-    }
+    
       setShowMaxScore(maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5);
-      
+    }
   }
 
   const checkWord = (rowWord) => {
@@ -439,6 +459,7 @@ const scoreRow = (word, row) => {
   if (gameState != 'playing'){
     // console.log("BurgerKing");
     return (<FinalPage won={gameState === 'won'} 
+    rows = {rows}
     highScores ={highScores} 
     score = {showScore}
     highscore = {showMaxScore}

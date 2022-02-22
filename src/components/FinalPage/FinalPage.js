@@ -1,5 +1,10 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants";
+import Animated, {
+    SlideInLeft, 
+    FlipInEasyY
+  } from 'react-native-reanimated';
+import { white } from "color-name";
 
 const Number = ({number, label}) => (
     <View style={{ alignItems: 'center', margin: 10 }}>
@@ -19,6 +24,10 @@ const GuessDistributionLine = ({position, amount, percentage}) => {
     );
 };
 
+const bonusCell = (row, col) => {
+    return (row+col)%8!=0
+}
+
 const GuessDistribution =() => {
     return (
     <>
@@ -30,37 +39,75 @@ const GuessDistribution =() => {
     )   
 }
 
-const FinalPage = ({ won = false}) => {
-    const share = () => {
-
+const FinalPage = ({ won = false, rows, score, highscore, highScores }) => {
+    var highScoreArray = new Array(6).fill(new Array(6).fill(''))
+    const highScoreArrayFill = highScores.toString().replace(/,/g,'').split('');
+    var A = [];
+    var k = 0;
+    for (var i = 0; i < 6; i++) {
+        A[i] = [];
+        for (var j = 0; j < 6; j++) {
+            A[i][j] = highScoreArrayFill[k];
+            k++;
+        }
     }
+    console.log(A)
+
 
     return (
         <View style={{ alignItems: 'center' }}>
-            <Text style={styles.title}>
+            {/* <Text style={styles.title}>
                 {won ? 'Congrats' : 'Try again tomorrow'}
-            </Text>
-            <Text style={styles.subtitle}>Statistics</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
-                <Number number ={2} label={'Played'} />
-                <Number number ={2} label={'Win %'} />
-                <Number number ={2} label={'Cur Streak'} />
-                <Number number ={2} label={'Max Streak'} />
-            </View>
+            </Text> */}
+            <Text style={styles.subtitle}>Your words {`${score}`}</Text>
+            {/* <View 
+            style={{ flexDirection: 'row', marginBottom: 20 }}
+            >
+                <Number number ={`${ rows}`} label={'Your Words'} />
+                <Number number ={`${score}`} label={'Your Score'} />
+                <Number number ={`${highscore}`} label={'Max Score'} />
+                <Number number ={`${Array.isArray(highScoreArray[0])}`} label={'High Scoring Words'} />
+            </View> */}
 
-            
-            <GuessDistribution />
-            <View style={{flexDirection: 'row' }}>
-                <View style={{ alignItems: 'center', flex: 1 }}>
-                    <Text style={{ color: colors.lightgrey}}>Next Wordle Here</Text>
-                    <Text style={{ color: colors.lightgrey, fontSize: 24, fontWeight: 'bold' }}>10:35:00</Text>
-                </View>
+        {rows.map((row, i) => 
+          <Animated.View entering={SlideInLeft.delay(i*300)}
+          key={`row-${i}`} style ={styles.row}>
+          {row.map((letter, j) => (
+              <> 
+              < Animated.View entering={FlipInEasyY.delay(j*50)}  key={`cell-color-${i}-${j}`}               
+              style={[styles.cell, {borderColor: 'grey',
+                backgroundColor: bonusCell(i,j)
+                ? colors.black
+                : '#661538',
+                }]}>
+                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+              </Animated.View>
+            </>
+          ))}
 
-                <Pressable onPress={share} style={{ flex: 1, backgroundColor: colors.primary,
-                     borderRadius: 25, alignItems: 'center',  justifyContent: 'center' }}>
-                    <Text style={{ color: colors.lightgrey, fontWeight: 'bold' }}>Share</Text>
-                </Pressable>
-            </View>
+        </Animated.View>
+        
+        )}
+            <Text style={styles.subtitle}>High Scoring Words {`${highscore}`}</Text>
+            {A.map((row, i) => 
+          <Animated.View entering={SlideInLeft.delay(i*300)}
+          key={`row-${i}`} style ={styles.row}>
+          {row.map((letter, j) => (
+              <> 
+              < Animated.View entering={FlipInEasyY.delay(j*50)}  key={`cell-color-${i}-${j}`}               
+              style={[styles.cell, {borderColor: 'grey',
+                backgroundColor: bonusCell(i,j)
+                ? colors.black
+                : '#661538',
+                }]}>
+                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+              </Animated.View>
+            </>
+          ))}
+          </Animated.View>
+            )}
+
+
         </View>
     );
 };
@@ -77,7 +124,28 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginVertical: 15,
         fontWeight: 'bold',
-    }
+    },
+    row: {
+        // alignSelf: 'stretch',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    
+      },
+    cell:{
+        borderWidth: 2,
+        borderColor: colors.darkgrey,
+        flex: 1,
+        maxWidth: 30,
+        aspectRatio: 1,
+        margin:2,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      cellText: {
+        color: colors.lightgrey,
+        fontSize: 16,
+        fontWeight: 'bold',
+      },
 })
 
 export default FinalPage;

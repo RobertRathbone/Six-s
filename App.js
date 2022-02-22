@@ -1,8 +1,9 @@
+// import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, SafeAreaView, Alert } from 'react-native';
 import { colors } from './src/constants';
 import Game from './src/components/Game/Game';
-import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setLetters } from './src/utils';
 import Animated, {
   SlideInLeft, 
@@ -24,6 +25,25 @@ const getDayOfYear = () => {
   return day;
 }
 const dayOfTheYear = getDayOfYear();
+
+const readState = async () => {
+  const dataString = await AsyncStorage.getItem('@game');
+  try {
+    const data = JSON.parse(dataString);
+    const day = data[dayKey];
+
+  } catch (e) {
+    console.log('Could not parse the state', e, dayKey);
+  }
+  if (day == dayOfTheYear){
+    sendLetters= day.dayLetters;
+    console.log (day);
+}
+}
+
+// useEffect(() => {
+//   readState();
+// }, []);
 
 
 export default function App() {
