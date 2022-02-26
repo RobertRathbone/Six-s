@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useState, useEffect } from "react";
 import { colors } from "../../constants";
 import Animated, {
     SlideInLeft, 
@@ -12,6 +13,8 @@ const Number = ({number, label}) => (
         <Text style={{ color: colors.lightgrey, fontSize: 16, }}>{label}</Text>
     </View>
 );
+
+
 
 const GuessDistributionLine = ({position, amount, percentage}) => {
     return (
@@ -40,18 +43,36 @@ const GuessDistribution =() => {
 }
 
 const FinalPage = ({ won = false, rows, score, highscore, highScores }) => {
-    var highScoreArray = new Array(6).fill(new Array(6).fill(''))
+    const [secondsTilTomorrow, setSecondsTilTomorrow] = useState();
     const highScoreArrayFill = highScores.toString().replace(/,/g,'').split('');
-    var A = [];
+    var highScoreArray = [];
     var k = 0;
     for (var i = 0; i < 6; i++) {
-        A[i] = [];
+        highScoreArray[i] = [];
         for (var j = 0; j < 6; j++) {
-            A[i][j] = highScoreArrayFill[k];
+            highScoreArray[i][j] = highScoreArrayFill[k];
             k++;
         }
     }
-    console.log(A)
+
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+            setSecondsTilTomorrow(( tomorrow - now) /1000 );
+        }; 
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+    }, []);
+
+    const formatSeconds = () => {
+        const hours = Math.floor(secondsTilTomorrow / (60*60));
+        const minutes = Math.floor((secondsTilTomorrow % (60 * 60))/ 60);
+        const seconds = Math.floor(secondsTilTomorrow % 60);
+        
+    return `${hours}:${minutes}:${seconds}`;
+    };
 
 
     return (
@@ -89,7 +110,7 @@ const FinalPage = ({ won = false, rows, score, highscore, highScores }) => {
         
         )}
             <Text style={styles.subtitle}>High Scoring Words {`${highscore}`}</Text>
-            {A.map((row, i) => 
+            {highScoreArray.map((row, i) => 
           <Animated.View entering={SlideInLeft.delay(i*300)}
           key={`row-${i}`} style ={styles.row}>
           {row.map((letter, j) => (
@@ -106,6 +127,10 @@ const FinalPage = ({ won = false, rows, score, highscore, highScores }) => {
           ))}
           </Animated.View>
             )}
+                <View style={{ alignItems: 'center', flex: 1 }}>
+                    <Text style={{ color: colors.lightgrey}}>Next Six(S)</Text>
+                    <Text style={{ color: colors.lightgrey, fontSize: 24, fontWeight: 'bold' }}>{formatSeconds()}</Text>
+                </View>
 
 
         </View>

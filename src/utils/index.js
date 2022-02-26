@@ -87,7 +87,7 @@ export const copyArray = (arr) => {
       theEleven.push(twelveCommon[thisRun])
       }
     }
-    console.log("this is how many letters: ", theEleven.length, theEleven)
+    // console.log("this is how many letters: ", theEleven.length, theEleven)
     return theEleven;
 
   }

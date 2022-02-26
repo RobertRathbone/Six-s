@@ -1,11 +1,12 @@
-import { useEffect, useState, Pressable } from 'react';
-import { StyleSheet, Text, View, Alert, ActivityIndicator, Button  } from 'react-native';
+import { useEffect, useState  } from 'react';
+import { StyleSheet, Text, View, Alert, ActivityIndicator, Button, Pressable  } from 'react-native';
 import { colorsToEmoji, colors, CLEAR, ENTER } from '../../constants';;
 import Keyboard from '../Keyboard';
 import * as Clipboard  from 'expo-clipboard';
-import { copyArray, getDayOfYear, getDayOfYearKey } from '../../utils';
+import { copyArray, getDayOfYear, getDayOfYearKey, setLetters } from '../../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import words from '../../utils/words';
+import LetterList from '../../utils/LetterList';
 import FinalPage from '../FinalPage';
 import Animated, {
     slideInDown, 
@@ -15,20 +16,22 @@ import Animated, {
   } from 'react-native-reanimated';
 
 const NUMBER_OF_TRIES  = 8;
-const alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+
 
 const dayOfTheYear = getDayOfYear();
 const dayOfTheYearKey = getDayOfYearKey();
 const dayKey = `day-${dayOfTheYearKey}`
 
 
-const Game = ({letters}) => {
-  AsyncStorage.removeItem('@game');
+const Game = ({route, navigation}) => {
+  const { letters } = route.params;
+  const { gameState } = route.params;
+  // AsyncStorage.removeItem('@game');
   const [rows, setRows] = useState(
     new Array(6).fill(new Array(6).fill(''))); // creates 2D array of empty boxes
   const [curRow, setCurRow] = useState(0);
   const [curCol, setCurCol] = useState(0);
-  const [gameState, setGameState] = useState('playing');
+  // const [gameState, setGameState] = useState('playing');
   const [loaded, setLoaded] = useState(false);
   const [dayLetters, setDayLetters] = useState(letters);
   const [timerCount, setTimer] = useState(360);
@@ -46,11 +49,17 @@ const Game = ({letters}) => {
   let z = 1;
   let w = 1;
   var score = 0;
+  const letterForYear =[];
 
   const setGreyCaps = () => {
+    var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+      // if (!letters){
+      //     letters = LetterList[dayOfTheYear];
+      //     console.log('LetterList', letters)
+      // }
       for (let i = 0; i<12; i++){
-          if (alphabet.includes(dayLetters[i])){
-              alphabet.splice(alphabet.indexOf(dayLetters[i]),1);
+          if (alphabet.includes(letters[i])){
+              alphabet.splice(alphabet.indexOf(letters[i]),1);
           };
       };
       return alphabet;
@@ -88,29 +97,57 @@ const Game = ({letters}) => {
   }, []);
 
 const persistState = async () => {
+  if (gameState != 'practice'){
+    const dataForToday = {
+      dayOfTheYear,
+      rows, 
+      curRow, 
+      curCol, 
+      // gameState, 
+      dayLetters, 
+      score, 
+      timerCount
+    };
+    console.log('!practice')
+    try {
+      const existingStateString = await AsyncStorage.getItem('@game');
+      const existingState =  existingStateString ? JSON.parse(existingStateString) : {};
 
-  const dataForToday = {
-    rows, 
-    curRow, 
-    curCol, 
-    gameState, 
-    dayLetters, 
-    score, 
-    timerCount
-  };
-  try {
-    const existingStateString = await AsyncStorage.getItem('@game');
-    const existingState =  existingStateString ? JSON.parse(existingStateString) : {};
-
-    existingState[dayKey] = dataForToday;
-    const dataString = JSON.stringify(existingState);
-    console.log('Saving', dataString);
-    await AsyncStorage.setItem('@game', dataString);
-  } catch (e) {
-  console.log('Failed to write data to async storage', dayKey);
+      existingState[dayKey] = dataForToday;
+      const dataString = JSON.stringify(existingState);
+      console.log('Saving', dataString);
+      await AsyncStorage.setItem('@game', dataString);
+    } catch (e) {
+    console.log('Failed to write data to async storage', dayKey);
+    }
+  }
+    else {
+    const dataForToday = {
+      dayOfTheYear,
+      rows, 
+      curRow, 
+      curCol, 
+      // gameState, 
+      dayLetters, 
+      score, 
+      timerCount
+    };
+    console.log('practice')
+    try {
+      const existingStateString = await AsyncStorage.getItem('@practice');
+      const existingState =  existingStateString ? JSON.parse(existingStateString) : {};
+  
+      existingState[dayKey] = dataForToday;
+      const dataString = JSON.stringify(existingState);
+      console.log('Saving', dataString);
+      await AsyncStorage.setItem('@game', dataString);
+    } catch (e) {
+    // console.log('Failed to write data to async storage', dayKey);
+  }
 }};
 
 const readState = async () => {
+  if (gameState != 'practice'){
   const dataString = await AsyncStorage.getItem('@game');
   try {
     const data = JSON.parse(dataString);
@@ -118,7 +155,7 @@ const readState = async () => {
     setRows(day.rows);
     setCurCol(day.curCol);
     setCurRow(day.curRow);
-    setGameState(day.gameState);
+    // setGameState(day.gameState);
     setDayLetters(day.dayLetters);
     setShowScore(day.score);
     setTimer(day.timerCount);
@@ -126,6 +163,24 @@ const readState = async () => {
     console.log('Could not parse the state', e, dayKey);
   }
   setLoaded(true)
+}
+ else {
+  const dataString = await AsyncStorage.getItem('@practice');
+  try {
+    const data = JSON.parse(dataString);
+    const day = data[dayKey];
+    setRows(day.rows);
+    setCurCol(day.curCol);
+    setCurRow(day.curRow);
+    // setGameState(day.gameState);
+    setDayLetters(day.dayLetters);
+    setShowScore(day.score);
+    setTimer(day.timerCount);
+  } catch (e) {
+    // console.log('Could not parse the state', e, dayKey);
+  }
+  setLoaded(true)
+}
 }
 
 //   const checkGameState = () => {
@@ -223,7 +278,7 @@ const scoreRow = (word, row) => {
             }
         }
     }
-    console.log("finished word found loop", found.length, found[8])
+    // console.log("finished word found loop", found.length, found[8])
     for (let i = 0; i<found.length; i++){
         for (let j=0; j<6; j++){
         scoreRow(found[i],j)
@@ -233,11 +288,11 @@ const scoreRow = (word, row) => {
                 found[i] != highScores[1] &&
                 found[i] != highScores[3] &&
                 found[i] != highScores[4] &&
-                found[i] != highScores[5] 
+                found[i] != highScores[5] &&
+                found[i] != highScores[2] 
                 ){
                 maxScore0 = score;
                 updatedHighScores[0]=found[i];
-                console.log('1', maxScore0, found[i]);
                 score = 0;
                 break;
             }
@@ -247,52 +302,52 @@ const scoreRow = (word, row) => {
                 found[i] != highScores[0] &&
                 found[i] != highScores[1] &&
                 found[i] != highScores[4] &&
-                found[i] != highScores[5] 
+                found[i] != highScores[5] &&
+                found[i] != highScores[2] 
                 ){
                 maxScore3 = score;
                 updatedHighScores[3]=found[i];
-                console.log('4', maxScore2, found[i]);
                 score = 0;
                 break;
-            }
+            };
         }
         else if (j==4){
             if (score> maxScore4 &&
                 found[i] != highScores[0] &&
                 found[i] != highScores[3] &&
                 found[i] != highScores[1] &&
-                found[i] != highScores[5] 
+                found[i] != highScores[5] &&
+                found[i] != highScores[2] 
                 ){
                 maxScore4 = score;
                 updatedHighScores[4]=found[i];
-                console.log('5', maxScore4, found[i]);
                 score = 0;
                 break;
-            }
+            };
         }
         else if (j==5){
             if (score> maxScore5 &&
                 found[i] != highScores[0] &&
                 found[i] != highScores[3] &&
                 found[i] != highScores[4] &&
-                found[i] != highScores[1] 
+                found[i] != highScores[1] &&
+                found[i] != highScores[2] 
                 ){
                 maxScore5 = score;
                 updatedHighScores[5]=found[i];
-                console.log('6', maxScore5, found[i]);
                 score = 0;
                 break;
-            }
+            };
         }
         else if (score > maxScore1 && 
             found[i] != highScores[0] &&
             found[i] != highScores[3] &&
             found[i] != highScores[4] &&
-            found[i] != highScores[5] 
+            found[i] != highScores[5] &&
+            found[i] != highScores[2] 
             ){
             maxScore1 = score;
-            updatedHighScores[1] = found[i]
-            console.log('2', maxScore1, found[i]);
+            updatedHighScores[1] = found[i];
             score = 0;
             break;
         }
@@ -304,18 +359,18 @@ const scoreRow = (word, row) => {
             found[i] != highScores[5] 
             ){
             maxScore2 = score;
-            updatedHighScores[2] = found[i]
-            console.log('3', maxScore1, found[i]);
+            updatedHighScores[2] = found[i];
             score = 0;
-        }
+            break;
+        };
         score = 0;
         setHighScores(updatedHighScores);
-
-        } 
-    
+        };
       setShowMaxScore(maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5);
+      
     }
-  }
+    score = maxScore0 + maxScore1 + maxScore2 + maxScore3 + maxScore4 + maxScore5
+  };
 
   const checkWord = (rowWord) => {
     const updatedRows = copyArray(rows);
@@ -347,17 +402,27 @@ const scoreRow = (word, row) => {
         updatedRows[curRow][curCol - 5] = '';
         updatedRows[curRow][curCol - 6] = '';
         setRows(updatedRows);
-        console.log("cursor should be here: ",curRow)
         setCurRow(curRow);
         setCurCol(0);
         return;
     }
   }
 
+// function to make an array of letters for daily use over the course of a year
+
+//   const pickLetterForYear = () => {
+//     for ( let i = 0; i<300; i++){
+//         letters = setLetters();
+//         maxScore()
+//         if (score > 320){
+//             console.log(letters);
+//         } score = 0;
+//     }
+//   }
+
   const onKeyPressed = (key) => {
-    if (gameState !== 'playing'){
-      return;
-    }
+    if (gameState == 'playing' || gameState == 'practice')
+    {
     const updatedRows = copyArray(rows);
 
     if (key === CLEAR){
@@ -416,7 +481,8 @@ const scoreRow = (word, row) => {
       setRows(updatedRows);
       setCurCol(curCol +1);
     }
-  };
+  }
+}
 
   const isCellActive = (row, col) => {
     return row === curRow && col === curCol;
@@ -458,83 +524,123 @@ const scoreRow = (word, row) => {
 
   if (gameState != 'playing'){
     // console.log("BurgerKing");
+    if (gameState === 'practice'){
+
+      readState();
+    } else {
     return (<FinalPage won={gameState === 'won'} 
     rows = {rows}
     highScores ={highScores} 
     score = {showScore}
     highscore = {showMaxScore}
     />)
+    }
   }
 
   const amDone = () => {
     console.log("Done");
-    setGameState('won');
+    navigation.setParams({
+      gameState: 'won',
+    });
+    // gameState = 'won';
     shareScore();
     return;
   }
 
   return (
       <>
-      <Animated.View style ={{ flexDirection: 'row' }} entering={SlideInLeft.delay(1000)}>
-        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Timer: {timerCount}</Text>
-        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Max: {showMaxScore}</Text>
-        <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18 }}>Score: {showScore}</Text>
-      </Animated.View>
-      <View style={styles.map}> 
-      
-        {rows.map((row, i) => 
-          <Animated.View entering={SlideInLeft.delay(i*300)}
-          key={`row-${i}`} style ={styles.row}>
-          {row.map((letter, j) => (
-              <>
-                {i < curRow && (
-              < Animated.View entering={FlipInEasyY.delay(j*50)}  key={`cell-color-${i}-${j}`}               
-              style={[styles.cell, {borderColor: isCellActive(i,j)
-                ? colors.grey
-                : colors.darkgrey,
-                backgroundColor: bonusCell(i,j)
-                ? colors.black
-                : '#661538',
-                }]}>
-                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-              </Animated.View>
-              )}
-              {i >= curRow && (
-              <View key={`cell-${i}-${j}`} 
-              style={[styles.cell, {borderColor: isCellActive(i,j)
-                ? colors.grey
-                : colors.darkgrey,
-                backgroundColor: bonusCell(i,j)
-                ? colors.black
-                : '#661538',
-                },
-                ]}>
-                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-              </View>
-              )}
-            </>
-          ))}
-
+      <View style= {styles.container}>
+        <Animated.Text entering={SlideInLeft.delay(300)} style={styles.title}>{letters}</Animated.Text>
+        <Animated.Text entering={SlideInLeft.delay(600)} style={styles.subtitle}>1111234566</Animated.Text>
+        
+        <Animated.View style ={{ flexDirection: 'row' }} entering={SlideInLeft.delay(1000)}>
+          <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Timer: {timerCount}</Text>
+          <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18}}>Max: {showMaxScore}</Text>
+          <Text style={{width: '30%', color: colors.lightgrey, fontSize: 18 }}>Score: {showScore}</Text>
         </Animated.View>
-    
-        )}
+        <View style={styles.map}> 
+        
+          {rows.map((row, i) => 
+            <Animated.View entering={SlideInLeft.delay(i*300)}
+            key={`row-${i}`} style ={styles.row}>
+            {row.map((letter, j) => (
+                <>
+                  {i < curRow && (
+                < Animated.View entering={FlipInEasyY.delay(j*50)}  key={`cell-color-${i}-${j}`}               
+                style={[styles.cell, {borderColor: isCellActive(i,j)
+                  ? colors.grey
+                  : colors.darkgrey,
+                  backgroundColor: bonusCell(i,j)
+                  ? colors.black
+                  : '#661538',
+                  }]}>
+                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+                </Animated.View>
+                )}
+                {i >= curRow && (
+                <View key={`cell-${i}-${j}`} 
+                style={[styles.cell, {borderColor: isCellActive(i,j)
+                  ? colors.grey
+                  : colors.darkgrey,
+                  backgroundColor: bonusCell(i,j)
+                  ? colors.black
+                  : '#661538',
+                  },
+                  ]}>
+                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+                </View>
+                )}
+              </>
+            ))}
 
-
-      <Keyboard onKeyPressed={onKeyPressed} 
-    //   greenCaps={greenCaps}
-    //   yellowCaps={yellowCaps}
-      greyCaps={greyCaps}
+          </Animated.View>
       
-      />
-    <Button style={styles.amDoneButton} onPress={amDone} 
-        title = "I am Done.">
-    </Button>
+          )}
+
+
+        <Keyboard onKeyPressed={onKeyPressed} 
+      //   greenCaps={greenCaps}
+      //   yellowCaps={yellowCaps}
+        greyCaps={greyCaps}
+        
+        />
+      <View style={{ alignItems: 'center', padding: 10 }}>
+          <Pressable style={styles.amDoneButton} onPress={amDone} >
+              <Text style={{ color: colors.lightgrey, fontSize: 20, }}>I am done</Text>
+          </Pressable>
+      </View>
+      {/* Letter pick function Button */}
+      {/* <Button style={styles.amDoneButton} onPress={pickLetterForYear} 
+          title = "Pick Letters">
+      </Button> */}
+      </View>
     </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.black,
+    alignItems: 'center',
+  },
+    title: {
+        color: colors.lightgrey,
+        fontSize: 28,
+        lineHeight: 30,
+        fontWeight: 'bold',
+        letterSpacing: 15,
+        marginVertical: 20,
+        
+      },
+      subtitle: {
+        color: colors.lightgrey,
+        fontSize: 22,
+        fontWeight: 'bold',
+        letterSpacing: 22,
+        lineHeight: 23,
+      },
     map: {
       alignSelf: 'stretch',
       height: 560,
@@ -561,12 +667,13 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
     },
     amDoneButton: { 
-        flex: 1, 
         color: colors.magenta,
-        backgroundColor: colors.lightgrey,
-        borderRadius: 25, 
+        backgroundColor: colors.magenta,
+        borderRadius: 15, 
+        height: 50,
+        width: 140,
         alignItems: 'center',  
-        justifyContent: 'center' 
+        justifyContent: 'center',
     },
   });
 
