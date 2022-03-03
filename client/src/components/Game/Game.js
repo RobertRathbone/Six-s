@@ -14,6 +14,7 @@ import Animated, {
     ZoomIn,
     FlipInEasyY
   } from 'react-native-reanimated';
+  import { Dimensions } from 'react-native';
 
 const NUMBER_OF_TRIES  = 8;
 
@@ -21,6 +22,8 @@ const NUMBER_OF_TRIES  = 8;
 const dayOfTheYear = getDayOfYear();
 const dayOfTheYearKey = getDayOfYearKey();
 const dayKey = `day-${dayOfTheYearKey}`
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 
 const Game = ({route, navigation}) => {
@@ -48,15 +51,12 @@ const Game = ({route, navigation}) => {
   let y = 1;
   let z = 1;
   let w = 1;
+  let mounted = true;
   var score = 0;
   const letterForYear =[];
 
   const setGreyCaps = () => {
     var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-      // if (!letters){
-      //     letters = LetterList[dayOfTheYear];
-      //     console.log('LetterList', letters)
-      // }
       for (let i = 0; i<12; i++){
           if (alphabet.includes(letters[i])){
               alphabet.splice(alphabet.indexOf(letters[i]),1);
@@ -77,27 +77,21 @@ const Game = ({route, navigation}) => {
   }, []);
 
 
-//   useEffect(() => {
-//     if (curRow >0){
-//       checkGameState();
-//     }
-//   }, [curRow]);
-
   useEffect(() => {
     if (loaded) {   
        persistState();
        setShowScore(row0Score + row1Score + row2Score + row3Score + row4Score + row5Score);
       }
-  }, [rows, curRow, curCol, gameState]);
+  }, [rows, curRow, curCol]);
 
   useEffect(() => {
     readState();
     maxScore();
-    console.log(highScores[0],highScores[1],highScores[2],highScores[3],highScores[4],highScores[5]);
+    console.log( highScores[0],highScores[1],highScores[2],highScores[3],highScores[4],highScores[5]);
   }, []);
 
 const persistState = async () => {
-  if (gameState != 'practice'){
+  if (gameState == 'playing'){
     const dataForToday = {
       dayOfTheYear,
       rows, 
@@ -122,33 +116,37 @@ const persistState = async () => {
     }
   }
     else {
-    const dataForToday = {
-      dayOfTheYear,
-      rows, 
-      curRow, 
-      curCol, 
-      // gameState, 
-      dayLetters, 
-      score, 
-      timerCount
-    };
+    // const dataForTodayPractice = {
+    //   dayOfTheYear,
+    //   rows, 
+    //   curRow, 
+    //   curCol, 
+    //   // gameState, 
+    //   dayLetters, 
+    //   score, 
+    //   timerCount
     console.log('practice')
-    try {
-      const existingStateString = await AsyncStorage.getItem('@practice');
-      const existingState =  existingStateString ? JSON.parse(existingStateString) : {};
+    };
+
+//     try {
+//       const existingStateString = await AsyncStorage.getItem('@practice');
+//       const existingState =  existingStateString ? JSON.parse(existingStateString) : {};
   
-      existingState[dayKey] = dataForToday;
-      const dataString = JSON.stringify(existingState);
-      console.log('Saving', dataString);
-      await AsyncStorage.setItem('@game', dataString);
-    } catch (e) {
-    // console.log('Failed to write data to async storage', dayKey);
-  }
-}};
+//       existingState[dayKey] = dataForTodayPractice;
+//       const dataString = JSON.stringify(existingState);
+//       console.log('Saving', dataString);
+//       await AsyncStorage.setItem('@practice', dataString);
+//     } catch (e) {
+//     // console.log('Failed to write data to async storage', dayKey);
+//   }
+//   setRows(new Array(6).fill(new Array(6).fill('')))
+// }
+};
 
 const readState = async () => {
   if (gameState != 'practice'){
   const dataString = await AsyncStorage.getItem('@game');
+  console.log('reading')
   try {
     const data = JSON.parse(dataString);
     const day = data[dayKey];
@@ -164,21 +162,22 @@ const readState = async () => {
   }
   setLoaded(true)
 }
- else {
-  const dataString = await AsyncStorage.getItem('@practice');
-  try {
-    const data = JSON.parse(dataString);
-    const day = data[dayKey];
-    setRows(day.rows);
-    setCurCol(day.curCol);
-    setCurRow(day.curRow);
-    // setGameState(day.gameState);
-    setDayLetters(day.dayLetters);
-    setShowScore(day.score);
-    setTimer(day.timerCount);
-  } catch (e) {
-    // console.log('Could not parse the state', e, dayKey);
-  }
+ else if (gameState == 'practice') {
+   console.log('reading practice')
+  // const dataString = await AsyncStorage.getItem('@practice');
+  // try {
+  //   const data = JSON.parse(dataString);
+  //   const day = data[dayKey];
+  //   setRows(day.rows);
+  //   setCurCol(day.curCol);
+  //   setCurRow(day.curRow);
+  //   // setGameState(day.gameState);
+  //   setDayLetters(day.dayLetters);
+  //   setShowScore(day.score);
+  //   setTimer(day.timerCount);
+  // } catch (e) {
+  //   // console.log('Could not parse the state', e, dayKey);
+  // }
   setLoaded(true)
 }
 }
@@ -408,17 +407,7 @@ const scoreRow = (word, row) => {
     }
   }
 
-// function to make an array of letters for daily use over the course of a year
 
-//   const pickLetterForYear = () => {
-//     for ( let i = 0; i<300; i++){
-//         letters = setLetters();
-//         maxScore()
-//         if (score > 320){
-//             console.log(letters);
-//         } score = 0;
-//     }
-//   }
 
   const onKeyPressed = (key) => {
     if (gameState == 'playing' || gameState == 'practice')
@@ -526,7 +515,7 @@ const scoreRow = (word, row) => {
     // console.log("BurgerKing");
     if (gameState === 'practice'){
 
-      readState();
+      // readState();
     } else {
     return (<FinalPage won={gameState === 'won'} 
     rows = {rows}
@@ -592,27 +581,18 @@ const scoreRow = (word, row) => {
                 )}
               </>
             ))}
-
           </Animated.View>
-      
           )}
-
-
         <Keyboard onKeyPressed={onKeyPressed} 
       //   greenCaps={greenCaps}
       //   yellowCaps={yellowCaps}
         greyCaps={greyCaps}
-        
         />
       <View style={{ alignItems: 'center', padding: 10 }}>
           <Pressable style={styles.amDoneButton} onPress={amDone} >
               <Text style={{ color: colors.lightgrey, fontSize: 20, }}>I am done</Text>
           </Pressable>
       </View>
-      {/* Letter pick function Button */}
-      {/* <Button style={styles.amDoneButton} onPress={pickLetterForYear} 
-          title = "Pick Letters">
-      </Button> */}
       </View>
     </View>
     </>
@@ -631,7 +611,7 @@ const styles = StyleSheet.create({
         lineHeight: 30,
         fontWeight: 'bold',
         letterSpacing: 15,
-        marginVertical: 20,
+        marginVertical: 10,
         
       },
       subtitle: {
@@ -643,7 +623,7 @@ const styles = StyleSheet.create({
       },
     map: {
       alignSelf: 'stretch',
-      height: 560,
+      height: 'auto',
     },
     row: {
       alignSelf: 'stretch',
@@ -655,7 +635,7 @@ const styles = StyleSheet.create({
       borderWidth: 3,
       borderColor: colors.darkgrey,
       flex: 1,
-      maxWidth: 60,
+      maxWidth: '11%',
       aspectRatio: 1,
       margin:5,
       justifyContent: 'center',
@@ -678,3 +658,22 @@ const styles = StyleSheet.create({
   });
 
 export default Game;
+
+
+
+// function to make an array of letters for daily use over the course of a year
+
+//   const pickLetterForYear = () => {
+//     for ( let i = 0; i<300; i++){
+//         letters = setLetters();
+//         maxScore()
+//         if (score > 320){
+//             console.log(letters);
+//         } score = 0;
+//     }
+//   }
+
+{/* Letter pick function Button */}
+{/* <Button style={styles.amDoneButton} onPress={pickLetterForYear} 
+    title = "Pick Letters">
+</Button> */}
